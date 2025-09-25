@@ -47,42 +47,66 @@ def calculate_expression(nums, ops, show_steps=False):
     return nums[0]
 
 def calculate(expression, show_steps=False):
+    # Handle parentheses by creating arrays for nested expressions 
+    #first check that parentheses are balanced
+    expression = expression.replace(" ", "")
+
+    opencount = 0
+    closedcount = 0
+    for char in expression:
+        if char == "(":
+            opencount += 1
+        elif char == ")":
+            closedcount += 1
+        if closedcount > opencount:
+            if show_steps:
+                print("Error: Unbalanced parentheses.")
+            return None
+        
+    if opencount != closedcount:
+        if show_steps:
+            print("Error: Unbalanced parentheses.")
+        return None
+
     delimiters = r"[-+*/()]"
     nums = re.split(delimiters, expression)
     ops = re.findall(delimiters, expression)
 
     if show_steps:
         print_equation(nums, ops)
+        print(f"Initial split: Numbers: {nums}, Operators: {ops}")
 
-    # Find and evaluate innermost parentheses
+    #Evaluate parentheses first
     while "(" in ops:
         open_index = None
         close_index = None
-        for i, op in enumerate(ops):
-            if op == "(":
+        for i in range(len(ops)):
+            if ops[i] == "(":
                 open_index = i
-            elif op == ")" and open_index is not None:
+            elif ops[i] == ")":
                 close_index = i
                 break
         if open_index is not None and close_index is not None:
             sub_nums = nums[open_index + 1:close_index + 1]
             sub_ops = ops[open_index + 1:close_index]
-            # If there is no operator inside the parentheses, just use the number
-            if not sub_ops:
-                result = sub_nums[0]
-            else:
-                result = calculate_expression(sub_nums, sub_ops)
-                if result is None:
-                    break
-            # Replace the evaluated parentheses with the result
-            nums = nums[:open_index] + [str(result)] + nums[close_index + 1:]
-            ops = ops[:open_index] + ops[close_index + 1:]
             if show_steps:
-                print("After evaluating parentheses:")
-                print_equation(nums, ops)
+                print(f"Evaluating parentheses: Numbers: {sub_nums}, Operators: {sub_ops}")
+            sub_result = calculate_expression(sub_nums, sub_ops, show_steps)
+            if sub_result is None:
+                return None
+            # Replace the parenthesized section with the result
+            nums = nums[:open_index] + [str(sub_result)] + nums[close_index + 1:]
+            ops = ops[:open_index] + ops[close_index + 1:]
+            # Remove empty strings from nums
+            # Only remove blank strings between open_index and close_index (the updated section)
+            updated_section = [n for n in nums[open_index:open_index + 2] if n != '']
+            nums = nums[:open_index] + updated_section + nums[open_index + 2:]
+            if show_steps:
+                print(f"After evaluating parentheses: Numbers: {nums}, Operators: {ops}")
         else:
-            print("Error: Unmatched parentheses.")
-            break
+            if show_steps:
+                print("Error: Unbalanced parentheses.")
+            return None
 
     result = 0.0
     if show_steps:
@@ -100,6 +124,7 @@ def calculate(expression, show_steps=False):
         return nums[0]
 
 if __name__ == "__main__":
+    """
     while True:
         exp = input("Enter calculation (or 'exit' to quit): ")
         if exp.lower() in ['exit', 'quit', 'q', 'e', '']:
@@ -108,35 +133,11 @@ if __name__ == "__main__":
             print("Invalid characters in expression. Please use only numbers and +, -, *, /, ., (, ) operators.")
             continue
         show_steps = True
-        exp = exp.replace(" ", "")
 
-        # Handle parentheses by creating arrays for nested expressions 
-        #first check that parentheses are balanced
-        opencount = 0
-        closedcount = 0
-        for char in exp:
-            if char == "(":
-                opencount += 1
-            elif char == ")":
-                closedcount += 1
-            if closedcount > opencount:
-                print("Error: Unbalanced parentheses.")
-                break
+        print(calculate(exp, True))
+    """
 
-        if opencount != closedcount:
-            print("Error: Unbalanced parentheses.")
-            continue
-
-        delimiters = r"[-+*/()]"
-        operator_precedence = ["/", "*", "+", "-"]
-        nums = re.split(delimiters, exp)
-        ops = re.findall(delimiters, exp)
-
-        if len(nums) - 1 != len(ops):
-            print("Error: Mismatched numbers and operators.")
-            continue
-
-        print(calculate(exp))
+    calculate("((2+6)*4)-5", True)
 
 
 
