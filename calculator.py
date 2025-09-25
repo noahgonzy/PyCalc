@@ -10,7 +10,7 @@ def print_equation(nums, ops):
             print(ops[n], end="")
     print("")
 
-def calculate_expression(nums, ops, show_steps=True):
+def calculate_expression(nums, ops, show_steps=False):
     operator_precedence = ["/", "*", "+", "-"]
     result = 0.0
     #print(f"Calculating expression: Numbers: {nums}, Operators: {ops}")
@@ -18,7 +18,8 @@ def calculate_expression(nums, ops, show_steps=True):
         i = 0
         while i < len(ops):
             if ops[i] == operator_precedence[j]:
-                print(nums, ops)
+                if show_steps:
+                    print_equation(nums, ops)
                 try:
                     if ops[i] == "/":
                         result = float(nums[i]) / float(nums[i + 1])
@@ -29,7 +30,8 @@ def calculate_expression(nums, ops, show_steps=True):
                     elif ops[i] == "-":
                         result = float(nums[i]) - float(nums[i + 1])
                 except ZeroDivisionError:
-                    print("Error: Division by zero.")
+                    if show_steps:
+                        print("Error: Division by zero.")
                     return None
                 
                 if show_steps:
@@ -44,12 +46,13 @@ def calculate_expression(nums, ops, show_steps=True):
             i += 1
     return nums[0]
 
-def calculate(expression, show_steps=True):
+def calculate(expression, show_steps=False):
     delimiters = r"[-+*/()]"
     nums = re.split(delimiters, expression)
     ops = re.findall(delimiters, expression)
 
-    print_equation(nums, ops)
+    if show_steps:
+        print_equation(nums, ops)
 
     # Find and evaluate innermost parentheses
     while "(" in ops:
@@ -82,7 +85,9 @@ def calculate(expression, show_steps=True):
             break
 
     result = 0.0
-    #print(f"Evaluating final expression: Numbers: {nums}, Operators: {ops}")
+    if show_steps:
+        print(f"Evaluating final expression: Numbers: {nums}, Operators: {ops}")
+
     if len(ops) > 0:
         result = calculate_expression(nums, ops)
         if result is not None:
@@ -95,8 +100,6 @@ def calculate(expression, show_steps=True):
         return nums[0]
 
 if __name__ == "__main__":
-    print(calculate("3+5+5+2"))
-    """
     while True:
         exp = input("Enter calculation (or 'exit' to quit): ")
         if exp.lower() in ['exit', 'quit', 'q', 'e', '']:
@@ -134,7 +137,6 @@ if __name__ == "__main__":
             continue
 
         print(calculate(exp))
-        """
 
 
 
