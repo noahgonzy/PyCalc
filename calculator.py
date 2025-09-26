@@ -51,6 +51,17 @@ def calculate(expression, show_steps=False):
     #first check that parentheses are balanced
     expression = expression.replace(" ", "")
 
+    #check if there are any numbers only separated by spaces
+    if re.match(r'^\d+(\s+\d+)*$', expression):
+        if show_steps:
+            print("Error: Invalid characters in expression.")
+        return None
+
+    if not allowed_chars(expression):
+        if show_steps:
+            print("Error: Invalid characters in expression.")
+        return None
+
     opencount = 0
     closedcount = 0
     for char in expression:
@@ -67,8 +78,40 @@ def calculate(expression, show_steps=False):
         if show_steps:
             print("Error: Unbalanced parentheses.")
         return None
+    
+    #handle multiple minuses in a row
+    def replace_multiple_minuses(match):
+        group = match.group(0)
+        if len(group) % 2 == 0:
+            return '+'
+        else:
+            return '-'
+    
+    updated = True
+    while updated:
+        temp = expression
+        # Handle implicit multiplication (e.g., 2(3+4) or (1+2)(3+4))
+        expression = re.sub(r'(\d)\s*\(', r'\1*(', expression)  # e.g., 2(3+4) -> 2*(3+4)
+        expression = re.sub(r'\)\s*(\d)', r')*\1', expression)  # e.g., (1+2)3 -> (1+2)*3
+        expression = re.sub(r'\)\s*\(', r')*(', expression)      # e.g., (1+2)(3+4) -> (1+2)*(3+4) 
+
+        #handle multiple plusses in a row
+        expression = re.sub(r'\++', r'+', expression)  # e.g., 3+++5 -> 3+5
+
+        #handle multiple minuses in a row
+        expression = re.sub(r'\-+', replace_multiple_minuses, expression)  # e.g., 3--5 -> 3+5, 3---5 -> 3-5
+
+        #handle plusses directly after minuses
+        expression = re.sub(r'\-\+', r'-', expression)  # e.g., 3-+5 -> 3-5
+
+        #handle minuses directly after plusses
+        expression = re.sub(r'\+\-', r'-', expression)  # e.g., 3+-5 -> 3-5
+        if temp == expression:
+            updated = False
 
     delimiters = r"[-+*/()]"
+    delimiters_witout_parentheses = r"[-+*/]"
+
     nums = re.split(delimiters, expression)
     ops = re.findall(delimiters, expression)
 
@@ -137,7 +180,7 @@ if __name__ == "__main__":
         print(calculate(exp, True))
     """
 
-    calculate("((2+6)*4)-5", True)
+    calculate("5+(6*3-(4/2))", True)
 
 
 
